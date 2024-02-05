@@ -1,8 +1,8 @@
 package org.example;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
@@ -17,6 +17,7 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,7 +51,7 @@ public class AutomationPracticeFormTest {
     }
 
     @Test
-    public void checkPracticeFormDataSubmit() throws InterruptedException {
+    public void checkPracticeFormDataSubmit() {
         WebDriverWait wait = new WebDriverWait(webDriver, 30, 500);
         webDriver.get("https://demoqa.com/automation-practice-form");
         webDriver.manage().window().maximize();
@@ -104,11 +105,10 @@ public class AutomationPracticeFormTest {
         String hobbies = webDriver.findElement(By.cssSelector("label[for='hobbies-checkbox-1']")).getText();
 
         wait.until(ExpectedConditions.presenceOfElementLocated(By.className("form-file")));
-        webDriver.findElement(By.cssSelector("label[class='form-file-label']")).click();
-        //не понял, как сделать через wait
-        Thread.sleep(10000);
-        String pathForPicture = webDriver.findElement(By.id("uploadPicture")).getAttribute("value");
-        String[] array = pathForPicture.split("\\\\");
+        File file = new File("src/empty_file.png");
+        String filePath = file.getAbsolutePath();
+        webDriver.findElement(By.id("uploadPicture")).sendKeys(filePath);
+        String[] array = filePath.split("/");
         String picture = array[array.length - 1];
 
         wait.until(ExpectedConditions.presenceOfElementLocated(By.id("currentAddress-wrapper")));
@@ -156,10 +156,13 @@ public class AutomationPracticeFormTest {
         String formatDateAfterSubmit = dayAndMonth[0] + " " + monthBeforeSubmit + " " + yearAfterSubmit;
         elementsTextValue.set(4, formatDateAfterSubmit);
 
+        SoftAssertions softAssert = new SoftAssertions();
+
         for (int i = 0; i < elementsTextValue.size(); ++i) {
-            if (!elementsTextValue.get(i).equals(studentData.get(i))) {
-                Assertions.fail("Данные заполнены неверно!");
-            }
+            softAssert.assertThat(elementsTextValue.get(i)).isEqualTo(studentData.get(i));
         }
+
+        softAssert.assertAll();
+
     }
 }
